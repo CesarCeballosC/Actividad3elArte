@@ -14,17 +14,19 @@ from turtle import *
 
 from freegames import floor, vector
 
-state = {'score': 0}
+state = {'score': 0} # Se crea un diccionario para guardar el puntaje del jugador
 path = Turtle(visible=False)
 writer = Turtle(visible=False)
 aim = vector(5, 0)
 pacman = vector(-40, -80)
-ghosts = [
+ghosts = [ 
     [vector(-180, 160), vector(5, 0)],
     [vector(-180, -160), vector(0, 5)],
     [vector(100, 160), vector(0, -5)],
     [vector(100, -160), vector(-5, 0)],
 ]
+
+# Se crea un tablero donde los 0s reprlas paredes y los 1s los pasillos
 # fmt: off
 tiles = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -50,7 +52,7 @@ tiles = [
 ]
 # fmt: on
 
-
+# Se crean las funciones para mover a los fantasmas
 def square(x, y):
     """Draw square using path at (x, y)."""
     path.up()
@@ -64,7 +66,7 @@ def square(x, y):
 
     path.end_fill()
 
-
+# Se crea la función para calcular el offset de un punto
 def offset(point):
     """Return offset of point in tiles."""
     x = (floor(point.x, 20) + 200) / 20
@@ -72,7 +74,7 @@ def offset(point):
     index = int(x + y * 20)
     return index
 
-
+# Se crea la función para verificar si un punto es válido (Si hay o no paredes)
 def valid(point):
     """Return True if point is valid in tiles."""
     index = offset(point)
@@ -88,15 +90,16 @@ def valid(point):
     return point.x % 20 == 0 or point.y % 20 == 0
 
 
+# Se dibuja el mundo
 def world():
     """Draw world using path."""
     bgcolor('black')
     path.color('blue')
 
-    for index in range(len(tiles)):
+    for index in range(len(tiles)): 
         tile = tiles[index]
 
-        if tile > 0:
+        if tile > 0: 
             x = (index % 20) * 20 - 200
             y = 180 - (index // 20) * 20
             square(x, y)
@@ -106,7 +109,7 @@ def world():
                 path.goto(x + 10, y + 10)
                 path.dot(2, 'white')
 
-
+# Se crea el movimiento de pacman y los fantasmas
 def move():
     """Move pacman and all ghosts."""
     writer.undo()
@@ -140,14 +143,30 @@ def move():
                 vector(0, 5),
                 vector(0, -5),
             ]
-            plan = choice(options)
-            course.x = plan.x
-            course.y = plan.y
+            fastest_route = None # Se crea la variable fastest_route
+            shortest_distance = 9999999 # Se crea la variable de la distancia más corta para encontrarla más tarde
+            for option in options: # Se recorren las opciones de movimiento para ver cuál es la que acerca más al fantasma al pacman
+                if valid(point + option): # Se verifica si la opción de movimiento no está bloqueada
+                    distance = abs(pacman - (point + option)) # Se calcula la distancia entre el pacman y la opción de movimiento
+                    if distance < shortest_distance: # Se verifica si la distancia es menor a la distancia más corta encontrada hasta el momento
+                        shortest_distance = distance # Se actualiza la distancia más corta
+                        fastest_route = option # Se actualiza la ruta más rápida
+            
+            if fastest_route: 
+                course.x = fastest_route.x # Se actualiza la dirección del fantasma en x
+                course.y = fastest_route.y # Se actualiza la dirección del fantasma en y
+
+
+
+
+
+
 
         up()
         goto(point.x + 10, point.y + 10)
         dot(20, 'red')
 
+    
     update()
 
     for point, course in ghosts:
@@ -156,7 +175,7 @@ def move():
 
     ontimer(move, 100)
 
-
+# Se crea la función para cambiar la dirección de pacman
 def change(x, y):
     """Change pacman aim if valid."""
     if valid(pacman + vector(x, y)):
